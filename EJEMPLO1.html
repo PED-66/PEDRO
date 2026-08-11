@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorimetría · Sesión Interactiva · 5.º Ciclo</title>
+
+<!-- KaTeX -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});"></script>
+
+<!-- Fuentes -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+:root{
+  --bg:#000000; --panel:#0b0b13; --panel2:#10101a;
+  --cyan:#00f0ff; --magenta:#ff2ec4; --yellow:#ffe600;
+  --green:#39ff14; --orange:#ff9f1c; --red:#ff3860;
+  --text:#e8f4ff; --muted:#9fb3c8;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;overflow:hidden}
+h1,h2,h3,.orbit{font-family:'Orbitron',sans-serif}
+
+/* ---------- Barra superior ---------- */
+#topbar{height:58px;display:flex;align-items:center;gap:14px;padding:0 18px;
+  background:linear-gradient(90deg,#05050a,#0d0d18,#05050a);border-bottom:1px solid rgba(0,240,255,.3)}
+#topbar .logo{font-family:'Orbitron';font-weight:900;font-size:1.05rem;
+  background:linear-gradient(90deg,var(--cyan),var(--magenta));-webkit-background-clip:text;background-clip:text;color:transparent}
+#topbar .badge{font-size:.72rem;border:1px solid var(--yellow);color:var(--yellow);
+  border-radius:20px;padding:3px 10px;white-space:nowrap}
+#counter{margin-left:auto;font-size:.8rem;color:var(--muted);white-space:nowrap}
+#progressbar{position:fixed;top:58px;left:0;height:4px;width:0%;z-index:50;
+  background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));
+  box-shadow:0 0 12px var(--cyan);transition:width .35s}
+
+/* ---------- Escenario / diapositivas ---------- */
+#stage{height:calc(100vh - 62px - 66px);overflow-y:auto;padding:26px 18px 40px;scroll-behavior:smooth}
+.slide{display:none;max-width:1150px;margin:0 auto}
+.slide.active{display:block;animation:fadeIn .5s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.slide h2{font-size:clamp(1.35rem,3vw,2.1rem);margin-bottom:6px;
+  color:var(--cyan);text-shadow:0 0 14px rgba(0,240,255,.55)}
+.slide .sub{color:var(--muted);margin-bottom:18px;font-size:.95rem}
+
+/* ---------- Tarjetas y cajas ---------- */
+.card{background:linear-gradient(145deg,var(--panel),#06060c);
+  border:1px solid rgba(0,240,255,.22);border-radius:14px;padding:18px 20px;
+  box-shadow:0 0 20px rgba(0,240,255,.07);margin-bottom:16px}
+.card.mag{border-color:rgba(255,46,196,.4);box-shadow:0 0 20px rgba(255,46,196,.10)}
+.card.grn{border-color:rgba(57,255,20,.35);box-shadow:0 0 20px rgba(57,255,20,.08)}
+.card.ylw{border-color:rgba(255,230,0,.35);box-shadow:0 0 20px rgba(255,230,0,.08)}
+.card h3{font-size:1.02rem;margin-bottom:10px;color:var(--yellow);text-shadow:0 0 10px rgba(255,230,0,.4)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+
+.kbox{background:rgba(255,46,196,.07);border:1px dashed var(--magenta);
+  border-radius:12px;padding:12px 16px;text-align:center;margin:12px 0;font-size:1.05rem;overflow-x:auto}
+.note{font-size:.85rem;color:var(--muted)}
+.hl{color:var(--cyan);font-weight:600}
+.hlm{color:var(--magenta);font-weight:600}
+.hly{color:var(--yellow);font-weight:600}
+.hlg{color:var(--green);font-weight:600}
+
+/* ---------- Botones ---------- */
+.btn{font-family:'Poppins';font-weight:600;cursor:pointer;background:transparent;
+  border:2px solid var(--cyan);color:var(--cyan);border-radius:10px;
+  padding:9px 20px;font-size:.92rem;transition:.2s;margin:4px}
+.btn:hover{background:rgba(0,240,255,.12);box-shadow:0 0 16px rgba(0,240,255,.5)}
+.btn.mag{border-color:var(--magenta);color:var(--magenta)}
+.btn.mag:hover{background:rgba(255,46,196,.12);box-shadow:0 0 16px rgba(255,46,196,.5)}
+.btn.ylw{border-color:var(--yellow);color:var(--yellow)}
+.btn.ylw:hover{background:rgba(255,230,0,.12);box-shadow:0 0 16px rgba(255,230,0,.5)}
+.btn.grn{border-color:var(--green);color:var(--green)}
+.btn.grn:hover{background:rgba(57,255,20,.12);box-shadow:0 0 16px rgba(57,255,20,.5)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+
+/* ---------- Deslizadores ---------- */
+.srow{display:flex;align-items:center;gap:12px;margin:10px 0;flex-wrap:wrap}
+.srow label{min-width:250px;font-size:.9rem;color:var(--muted)}
+.srow input[type=range]{flex:1;min-width:160px;accent-color:var(--cyan);height:6px;cursor:pointer}
+.chip{background:#0a0a10;border:1px solid var(--green);color:var(--green);
+  padding:3px 12px;border-radius:20px;font-weight:700;font-size:.9rem;min-width:86px;text-align:center}
+.chip.c{border-color:var(--cyan);color:var(--cyan)}
+.chip.m{border-color:var(--magenta);color:var(--magenta)}
+.chip.y{border-color:var(--yellow);color:var(--yellow)}
+select{background:#0a0a10;color:var(--cyan);border:1px solid var(--cyan);
+  border-radius:8px;padding:7px 10px;font-family:'Poppins';cursor:pointer}
+
+.res{font-size:1rem;padding:8px 12px;margin:6px 0;border-left:4px solid var(--yellow);
+  background:rgba(255,230,0,.05);border-radius:0 8px 8px 0}
+.res.big{font-size:1.25rem;border-left-color:var(--green);background:rgba(57,255,20,.06)}
+.res b{color:var(--green)}
+
+/* ---------- Portada ---------- */
+.cover{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:calc(100vh - 180px);text-align:center}
+.cover h1{font-size:clamp(2.6rem,7vw,5rem);font-weight:900;letter-spacing:4px;
+  background:linear-gradient(90deg,var(--cyan),var(--magenta),var(--yellow));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 22px rgba(255,46,196,.55))}
+.cover .tag{margin-top:14px;font-size:1.1rem;color:var(--muted)}
+.cover .chips{margin-top:26px;display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
+
+/* ---------- Agenda ---------- */
+.tline{list-style:none}
+.tline li{display:flex;align-items:center;gap:14px;padding:9px 0;border-bottom:1px dashed rgba(159,179,200,.2);font-size:.95rem}
+.tline .min{border:1px solid var(--orange);color:var(--orange);border-radius:20px;
+  padding:2px 12px;font-size:.78rem;font-weight:700;white-space:nowrap}
+
+/* ---------- Tabla Ce ---------- */
+table.ce{width:100%;border-collapse:collapse;font-size:.88rem}
+table.ce th{color:var(--magenta);border-bottom:1px solid var(--magenta);padding:7px;text-align:left}
+table.ce td{padding:6px 7px;border-bottom:1px solid rgba(159,179,200,.15)}
+table.ce tr:hover td{background:rgba(0,240,255,.05)}
+
+/* ---------- Pasos del ejemplo ---------- */
+.step{display:none;animation:fadeIn .4s}
+.step.show{display:block}
+
+/* ---------- Evaluación ---------- */
+.qcard{background:linear-gradient(145deg,var(--panel),#06060c);
+  border:1px solid rgba(255,159,28,.35);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+.qcard .qnum{color:var(--orange);font-weight:700;font-family:'Orbitron';font-size:.85rem}
+.qcard .qtxt{margin:8px 0 12px;font-size:.98rem}
+.opt{display:block;width:100%;text-align:left;margin:7px 0;padding:10px 14px;
+  background:#0c0c15;border:1px solid #2a2a3a;color:var(--text);
+  border-radius:10px;cursor:pointer;font-family:'Poppins';font-size:.92rem;transition:.15s}
+.opt:hover:not(:disabled){border-color:var(--cyan);background:rgba(0,240,255,.07)}
+.opt.correct{border-color:var(--green);background:rgba(57,255,20,.10);box-shadow:0 0 12px rgba(57,255,20,.35)}
+.opt.wrong{border-color:var(--red);background:rgba(255,56,96,.10);box-shadow:0 0 12px rgba(255,56,96,.35)}
+.expl{display:none;margin-top:10px;padding:10px 12px;border-left:3px solid var(--cyan);
+  background:rgba(0,240,255,.06);border-radius:0 8px 8px 0;font-size:.86rem;color:var(--muted)}
+#scorebar{position:sticky;top:0;z-index:10;background:#05050a;border:1px solid var(--green);
+  border-radius:12px;padding:10px 16px;margin-bottom:16px;font-weight:600;display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+#finalmsg{display:none;text-align:center;font-size:1.3rem;padding:20px;border:2px solid var(--yellow);
+  border-radius:14px;color:var(--yellow);text-shadow:0 0 14px rgba(255,230,0,.5);margin-bottom:16px}
+
+/* ---------- Barra inferior ---------- */
+#navbar{position:fixed;bottom:0;left:0;right:0;height:66px;display:flex;
+  align-items:center;justify-content:center;gap:16px;
+  background:linear-gradient(0deg,#05050a,#0a0a12);border-top:1px solid rgba(0,240,255,.3)}
+kbd{background:#111;border:1px solid #444;border-radius:5px;padding:1px 7px;font-size:.75rem;color:var(--muted)}
+.hintnav{position:fixed;bottom:70px;right:14px;font-size:.7rem;color:#555}
+</style>
+</head>
+<body>
+
+<!-- ============ BARRA SUPERIOR ============ -->
+<div id="topbar">
+  <span class="logo">⚛ CALORIMETRÍA</span>
+  <span class="badge">Fisicoquímica · 5.º ciclo · Ingeniería</span>
+  <span class="badge" style="border-color:var(--orange);color:var(--orange)">⏱ 70 min</span>
+  <span id="counter">Diapositiva 1 / 13</span>
+</div>
+<div id="progressbar"></div>
+
+<!-- ============ ESCENARIO ============ -->
+<div id="stage">
+
+<!-- ========== SLIDE 0 · PORTADA ========== -->
+<section class="slide active" id="s0">
+  <div class="cover">
+    <h1>CALORIMETRÍA</h1>
+    <p class="tag">Medición del calor en reacciones y procesos fisicoquímicos</p>
+    <p class="tag" style="font-size:.9rem;margin-top:6px">Capítulo 5 · Rubio González, J. A. · doi:10.61728/AE24310062</p>
+    <div class="chips">
+      <span class="chip c">🎓 5.º Ciclo — Ingeniería</span>
+      <span class="chip m">🧪 Sesión teórico-práctica</span>
+      <span class="chip y">⏱ Duración: 70 minutos</span>
+      <span class="chip">📅 Agosto 2026</span>
+    </div>
+    <div style="margin-top:36px">
+      <button class="btn mag" onclick="go(1)">Comenzar la sesión ▶</button>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 1 · OBJETIVOS Y AGENDA ========== -->
+<section class="slide" id="s1">
+  <h2>🎯 Objetivos y agenda de la sesión</h2>
+  <p class="sub">Al finalizar, el estudiante será capaz de:</p>
+  <div class="grid2">
+    <div class="card grn">
+      <h3>Objetivos de aprendizaje</h3>
+      <ul style="padding-left:20px;line-height:1.9">
+        <li>Determinar la <span class="hlg">capacidad calorífica de un calorímetro</span>.</li>
+        <li>Determinar el <span class="hlg">calor específico de un metal</span>.</li>
+        <li>Analizar la <span class="hlg">transferencia de energía calorífica</span> entre sistema y alrededores.</li>
+      </ul>
+      <p class="note" style="margin-top:10px">Conocimientos previos: física básica, termodinámica y principio de conservación de la energía.</p>
+    </div>
+    <div class="card ylw">
+      <h3>Agenda · 70 minutos</h3>
+      <ul class="tline">
+        <li><span class="min">5 min</span> Introducción y objetivos</li>
+        <li><span class="min">15 min</span> Teoría: energía, calor, C y Ce</li>
+        <li><span class="min">10 min</span> Calorímetro, flujo de calor y método gráfico</li>
+        <li><span class="min">10 min</span> Simulador 1: capacidad del calorímetro</li>
+        <li><span class="min">5 min</span> Ejemplo resuelto paso a paso</li>
+        <li><span class="min">10 min</span> Simulador 2: calor específico de un metal</li>
+        <li><span class="min">15 min</span> Evaluación (10 preguntas)</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 2 · ENERGÍA ========== -->
+<section class="slide" id="s2">
+  <h2>⚡ Energía, termodinámica y termoquímica</h2>
+  <p class="sub">Los cambios físicos y químicos de la materia van acompañados de cambios en su contenido de energía.</p>
+  <div class="grid3">
+    <div class="card">
+      <h3>🔋 Energía</h3>
+      <p>Capacidad para hacer <span class="hl">trabajo</span> o <span class="hl">transferir calor</span>.</p>
+      <div class="kbox">$$1\;\mathrm{J} = 1\;\dfrac{\mathrm{kg\,m^2}}{\mathrm{s^2}}$$</div>
+      <p class="note">Unidad en el SI: el joule (J).</p>
+    </div>
+    <div class="card mag">
+      <h3>🔥 Termodinámica</h3>
+      <p>Ciencia que estudia la relación entre el <span class="hlm">calor</span> y otras formas de energía.</p>
+      <p style="margin-top:8px">Cuando las sustancias reaccionan, el cambio de energía conduce generalmente a una <span class="hlm">transferencia de calor</span>.</p>
+    </div>
+    <div class="card ylw">
+      <h3>⚗ Termoquímica</h3>
+      <p>Rama de la termodinámica que estudia los cambios de energía asociados a las <span class="hly">reacciones químicas</span>.</p>
+      <p style="margin-top:8px" class="note">Ej: quemar gasolina libera energía; descomponer agua en H₂ y O₂ requiere energía.</p>
+    </div>
+  </div>
+  <div class="card grn">
+    <h3>🌡 ¿Qué es la calorimetría?</h3>
+    <p>Método para medir el calor transferido en un proceso a <span class="hlg">presión constante</span>, midiendo el <span class="hlg">cambio de temperatura</span> entre el sistema y los alrededores. Al conjunto de instrumentos se le llama <span class="hlg">calorímetro</span>.</p>
+  </div>
+</section>
+
+<!-- ========== SLIDE 3 · SISTEMA / ALREDEDORES ========== -->
+<section class="slide" id="s3">
+  <h2>🌐 Sistema, alrededores y calor (q)</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Definiciones clave</h3>
+      <p><span class="hl">Sistema:</span> parte del universo que se quiere estudiar (las sustancias que reaccionan).</p>
+      <p style="margin-top:8px"><span class="hl">Alrededores:</span> todo lo que rodea al sistema y se afecta con sus cambios (el envase, el termómetro, el aire…).</p>
+      <div class="kbox">$$q:\ \text{energía que fluye hacia el sistema o fuera de él por una diferencia de temperatura}$$</div>
+      <p class="note">El calor siempre fluye del objeto de mayor temperatura al de menor temperatura, hasta igualarse.</p>
+    </div>
+    <div class="card mag">
+      <h3>Prueba la dirección del flujo 👇</h3>
+      <div style="text-align:center;margin:8px 0">
+        <button class="btn ylw" onclick="setProc('exo')">🔥 Proceso EXOTÉRMICO</button>
+        <button class="btn" onclick="setProc('endo')">❄️ Proceso ENDOTÉRMICO</button>
+      </div>
+      <div id="procInfo" class="res" style="min-height:120px;border-left-color:var(--magenta)">
+        Pulsa un botón para ver la dirección del calor, el signo de <i>q</i> y lo que se observa en el laboratorio.
+      </div>
+    </div>
+  </div>
+  <div class="card grn">
+    <p>💡 En el laboratorio: las sustancias que participan constituyen el <span class="hlg">sistema</span>; el envase y todo lo que lo rodea son los <span class="hlg">alrededores</span>. Se mide el cambio de temperatura resultante de la reacción.</p>
+  </div>
+</section>
+
+<!-- ========== SLIDE 4 · CAPACIDAD CALORÍFICA ========== -->
+<section class="slide" id="s4">
+  <h2>🔥 Capacidad calorífica (C)</h2>
+  <p class="sub">Cuando un calorímetro y su contenido absorben energía en forma de calor, el aumento de temperatura resultante depende de su capacidad calorífica.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Definición</h3>
+      <p>Calor que se requiere para aumentar la temperatura de un objeto o sustancia en una cantidad dada:</p>
+      <div class="kbox">$$C = \dfrac{q}{\Delta T} \qquad \Longrightarrow \qquad q = C\,\Delta T$$</div>
+      <p class="note">donde $\Delta T = T_{final} - T_{inicial}$ y $q$ es el calor transferido.</p>
+    </div>
+    <div class="card ylw">
+      <h3>Propiedad EXTENSIVA</h3>
+      <p>Es proporcional a la <span class="hly">cantidad de sustancia</span>: a mayor masa, más calor se necesita para subir 1 °C.</p>
+      <p style="margin-top:10px">🛁 Una <span class="hl">tina de baño llena de agua</span> tiene mayor capacidad calorífica que una ☕ <span class="hl">taza de café</span>: se requiere más calor para calentar la tina.</p>
+    </div>
+  </div>
+  <div class="card mag">
+    <p>📌 Cuanto <span class="hlm">mayor</span> sea la capacidad calorífica, <span class="hlm">más calor</span> se necesitará para producir un cambio de temperatura dado. La energía calorífica absorbida es: <b>C × ΔT</b>.</p>
+  </div>
+</section>
+
+<!-- ========== SLIDE 5 · CALOR ESPECÍFICO ========== -->
+<section class="slide" id="s5">
+  <h2>🧪 Calor específico (Ce) + laboratorio virtual</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Definición</h3>
+      <p>Cantidad de calor requerida para aumentar la temperatura de <span class="hl">1 gramo</span> de sustancia en <span class="hl">1 °C (1 K)</span>:</p>
+      <div class="kbox">$$C_e = \dfrac{q}{m\,\Delta T} \qquad \Longrightarrow \qquad q = C_e \cdot m \cdot \Delta T$$</div>
+      <p class="note">Si $q$ en J, $\Delta T$ en °C y $m$ en g → unidades: $\mathrm{J/(g\,^\circ C)}$. Es una propiedad <b>intensiva</b>.</p>
+      <div class="kbox" style="border-color:var(--cyan);background:rgba(0,240,255,.06)">$$C_e{}_{agua} = 1.00\;\tfrac{\mathrm{cal}}{\mathrm{g\,^\circ C}} = 4.184\;\tfrac{\mathrm{J}}{\mathrm{g\,^\circ C}} \qquad \rho_{agua} = 1.0\;\tfrac{\mathrm{g}}{\mathrm{mL}}$$</div>
+    </div>
+    <div class="card grn">
+      <h3>Valores típicos de Ce — J/(g·°C)</h3>
+      <table class="ce">
+        <tr><th>Sustancia</th><th>Ce</th><th>Sustancia</th><th>Ce</th></tr>
+        <tr><td>Agua (l)</td><td style="color:var(--green)">4.184</td><td>Aluminio</td><td>0.897</td></tr>
+        <tr><td>Hielo</td><td>2.09</td><td>Hierro</td><td>0.449</td></tr>
+        <tr><td>Etanol</td><td>2.44</td><td>Cobre</td><td>0.385</td></tr>
+        <tr><td>Zinc</td><td>0.388</td><td>Plomo</td><td>0.128</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="card mag">
+    <h3>🎮 Mini-simulador: ¿cuánto sube la temperatura?</h3>
+    <div class="srow">
+      <label>Sustancia (1 g de referencia → elige Ce):</label>
+      <select id="demoSus" onchange="ceDemo()">
+        <option value="4.184">Agua (4.184)</option>
+        <option value="2.44">Etanol (2.44)</option>
+        <option value="2.09">Hielo (2.09)</option>
+        <option value="0.897">Aluminio (0.897)</option>
+        <option value="0.449">Hierro (0.449)</option>
+        <option value="0.385">Cobre (0.385)</option>
+        <option value="0.128">Plomo (0.128)</option>
+      </select>
+    </div>
+    <div class="srow"><label>Masa de la muestra, m:</label>
+      <input type="range" id="demoM" min="5" max="200" value="50" oninput="ceDemo()"><span class="chip c" id="demoMv">50 g</span></div>
+    <div class="srow"><label>Calor suministrado, q:</label>
+      <input type="range" id="demoQ" min="100" max="10000" step="100" value="2000" oninput="ceDemo()"><span class="chip y" id="demoQv">2000 J</span></div>
+    <div class="res big">Aumento de temperatura: <b id="demoR">—</b></div>
+    <p class="note">Observa: a menor Ce, mayor ΔT con el mismo calor. ¡Por eso los metales se calientan rápido!</p>
+  </div>
+</section>
+
+<!-- ========== SLIDE 6 · CALORÍMETRO Y FLUJO DE CALOR ========== -->
+<section class="slide" id="s6">
+  <h2>🧰 El calorímetro y la ecuación de flujo de calor</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3>Calorímetro sencillo (vaso de café) ☕</h3>
+      <p>Recipiente aislado con <span class="hl">agitador</span>, <span class="hl">termómetro</span> y <span class="hl">tapa</span> (presión atmosférica constante).</p>
+      <p style="margin-top:8px">Como P es constante, la medición de T permite calcular el cambio de <span class="hl">entalpía ΔH</span>:</p>
+      <div class="kbox">$$\Delta H = \dfrac{q_{sistema}}{\text{moles de reactivo limitante}}\quad [\mathrm{kJ/mol}]$$</div>
+    </div>
+    <div class="card mag">
+      <h3>Bomba calorimétrica 💣</h3>
+      <p>Dispositivo más complicado para medir la energía liberada en <span class="hlm">reacciones de combustión</span> (cualquier reacción que produce flama) o de sustancias inflamables.</p>
+      <p class="note" style="margin-top:10px">Presunciones usuales: el Ce y la densidad de las soluciones se toman iguales a los del agua pura.</p>
+    </div>
+  </div>
+  <div class="card grn">
+    <h3>⚖ Ley de conservación de la energía</h3>
+    <p>El calor ganado o perdido por el sistema debe ser igual (y de signo contrario) al de los alrededores:</p>
+    <div class="kbox">$$q_{sistema} = -\,q_{alrededores} \qquad \Longrightarrow \qquad q_{sistema} = -\,q_{calor\acute{\imath}metro} - q_{agua}$$</div>
+    <div class="grid2">
+      <div class="res" style="border-left-color:var(--orange)">🔥 <b>Exotérmico:</b><br>q perdido por el sistema = q ganado por el calorímetro + q ganado por el agua</div>
+      <div class="res" style="border-left-color:var(--cyan)">❄️ <b>Endotérmico:</b><br>q ganado por el sistema = q perdido por los alrededores</div>
+    </div>
+    <p class="note" style="margin-top:10px">Cálculos: $q_{cal} = C_{cal}\,\Delta t$ &nbsp;·&nbsp; $q_{agua} = C_e{}_{agua}\,m_{agua}\,\Delta t$ &nbsp;·&nbsp; $(\Delta t = t_f - t_i)$</p>
+  </div>
+</section>
+
+<!-- ========== SLIDE 7 · MÉTODO GRÁFICO ========== -->
+<section class="slide" id="s7">
+  <h2>📈 Método gráfico: corrección de Tf</h2>
+  <p class="sub">Es imposible observar la temperatura máxima real: cierta cantidad de calor escapa inevitablemente por las paredes del calorímetro.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Procedimiento</h3>
+      <ol style="padding-left:20px;line-height:1.95;font-size:.94rem">
+        <li>Al mezclar, medir T cada <span class="hl">30 s</span> durante ~5 min.</li>
+        <li>Graficar <span class="hl">T vs. tiempo</span> y obtener una regresión lineal.</li>
+        <li><span class="hlm">Extrapolar</span> la recta hasta <span class="hlm">t = 0</span> (momento de la mezcla).</li>
+        <li>Leer ahí la temperatura final corregida <span class="hlm">Tf</span>.</li>
+      </ol>
+      <div class="res big" style="margin-top:12px">Ejemplo del documento: <b>Tf ≈ 45.54 °C</b> a t = 0</div>
+    </div>
+    <div class="card mag" style="text-align:center">
+      <svg viewBox="0 0 560 300" style="width:100%;max-width:520px">
+        <line x1="60" y1="260" x2="540" y2="260" stroke="#9fb3c8" stroke-width="1.5"/>
+        <line x1="60" y1="260" x2="60" y2="20" stroke="#9fb3c8" stroke-width="1.5"/>
+        <text x="280" y="290" fill="#9fb3c8" font-size="13" text-anchor="middle">tiempo (s)</text>
+        <text x="25" y="140" fill="#9fb3c8" font-size="13" transform="rotate(-90 25 140)">T (°C)</text>
+        <text x="60" y="278" fill="#667" font-size="11" text-anchor="middle">0</text>
+        <text x="285" y="278" fill="#667" font-size="11" text-anchor="middle">150</text>
+        <text x="510" y="278" fill="#667" font-size="11" text-anchor="middle">300</text>
+        <!-- recta de regresión extrapolada -->
+        <line x1="60" y1="138" x2="510" y2="190" stroke="#ff2ec4" stroke-width="2" stroke-dasharray="7,5"/>
+        <!-- datos experimentales -->
+        <circle cx="105" cy="143" r="4.5" fill="#00f0ff"/><circle cx="150" cy="147" r="4.5" fill="#00f0ff"/>
+        <circle cx="195" cy="153" r="4.5" fill="#00f0ff"/><circle cx="240" cy="159" r="4.5" fill="#00f0ff"/>
+        <circle cx="285" cy="163" r="4.5" fill="#00f0ff"/><circle cx="330" cy="169" r="4.5" fill="#00f0ff"/>
+        <circle cx="375" cy="174" r="4.5" fill="#00f0ff"/><circle cx="420" cy="179" r="4.5" fill="#00f0ff"/>
+        <circle cx="465" cy="184" r="4.5" fill="#00f0ff"/><circle cx="510" cy="190" r="4.5" fill="#00f0ff"/>
+        <!-- extrapolar a t=0 -->
+        <circle cx="60" cy="138" r="6" fill="none" stroke="#ffe600" stroke-width="2.5"/>
+        <line x1="60" y1="138" x2="30" y2="138" stroke="#ffe600" stroke-width="1.5" stroke-dasharray="4,3"/>
+        <text x="14" y="128" fill="#ffe600" font-size="13" font-weight="bold">Tf</text>
+        <text x="120" y="130" fill="#ff2ec4" font-size="12.5">regresión + extrapolación →</text>
+        <text x="330" y="215" fill="#00f0ff" font-size="12.5">● datos T cada 30 s</text>
+      </svg>
+      <p class="note">Figura 5.1 — Pérdidas energéticas en un calorímetro.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 8 · SIMULADOR 1 ========== -->
+<section class="slide" id="s8">
+  <h2>🧪 Simulador 1 · Capacidad calorífica del calorímetro</h2>
+  <p class="sub">Práctica modo I: se mezclan agua caliente y agua fría dentro del calorímetro (vasos de poliestireno). Mueve los deslizadores y observa el balance de energía.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>🎛 Controles del experimento</h3>
+      <div class="srow"><label>🔴 Volumen de agua caliente:</label>
+        <input type="range" id="vHot" min="20" max="100" value="50" oninput="sim1()"><span class="chip m" id="vHotV">50 mL</span></div>
+      <div class="srow"><label>🔴 Ti del agua caliente:</label>
+        <input type="range" id="tHot" min="35" max="60" value="45" oninput="sim1()"><span class="chip m" id="tHotV">45.0 °C</span></div>
+      <div class="srow"><label>🔵 Volumen de agua fría:</label>
+        <input type="range" id="vCold" min="20" max="100" value="50" oninput="sim1()"><span class="chip c" id="vColdV">50 mL</span></div>
+      <div class="srow"><label>🔵 Ti del agua fría:</label>
+        <input type="range" id="tCold" min="15" max="30" value="25" step="0.5" oninput="sim1()"><span class="chip c" id="tColdV">25.0 °C</span></div>
+      <div class="srow"><label>🧰 C del calorímetro (equipo):</label>
+        <input type="range" id="cCal" min="0" max="150" value="40" oninput="sim1()"><span class="chip y" id="cCalV">40 J/°C</span></div>
+      <div class="res big">🌡 Tf medida (gráfica, t = 0): <b id="sim1Tf">—</b></div>
+      <p class="note">Tf ideal sin absorción del calorímetro: <span id="sim1Tf0" style="color:var(--cyan)">—</span> · El calorímetro "roba" calor y baja la Tf observada.</p>
+    </div>
+    <div class="card grn">
+      <h3>⚖ Balance de energía (en vivo)</h3>
+      <div class="res">q perdido por el agua caliente: <b id="sim1qh">—</b></div>
+      <div class="res">q ganado por el agua fría: <b id="sim1qc">—</b></div>
+      <div class="res">q ganado por el calorímetro = q<sub>caliente</sub> − q<sub>fría</sub>: <b id="sim1qcal">—</b></div>
+      <div class="res big">✅ C<sub>calorímetro</sub> = q<sub>cal</sub>/ΔT = <b id="sim1C">—</b></div>
+      <p class="note">En el laboratorio real: se mide Tf experimental (método gráfico) y se despeja C del calorímetro. Aquí el simulador te muestra el resultado instantáneo.</p>
+      <h3 style="margin-top:14px">⚠ Precauciones (según la guía)</h3>
+      <ul style="padding-left:20px;font-size:.83rem;color:var(--muted);line-height:1.7">
+        <li>El termómetro no debe tocar las paredes ni usarse como agitador.</li>
+        <li>Verificar el mechero antes de encenderlo; reportar fugas.</li>
+        <li>No dejar material inflamable cerca del mechero.</li>
+        <li>Sujetar con firmeza las pinzas al manipular piezas calientes.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 9 · EJEMPLO RESUELTO ========== -->
+<section class="slide" id="s9">
+  <h2>📝 Ejemplo resuelto paso a paso</h2>
+  <p class="sub">Caso de la guía: 100 mL de agua a 37 °C se añaden a un calorímetro con 100 mL de agua a 25 °C. Temperatura final del sistema: 30.5 °C. (ρ = 1 g/mL; Ce del agua = 4.184 J/(g·°C))</p>
+  <div class="card">
+    <div id="steps">
+      <div class="step"><div class="res"><b>Paso 1 · Datos.</b> $V_{caliente}=V_{fr\acute{\imath}a}=100\;\mathrm{mL}\Rightarrow m=100\;\mathrm{g}$ · $T_{caliente}=37.00\;^\circ\mathrm{C}$ · $T_{fr\acute{\imath}a}=25.00\;^\circ\mathrm{C}$ · $T_f=30.50\;^\circ\mathrm{C}$</div></div>
+      <div class="step"><div class="res"><b>Paso 2 · Cambios de temperatura.</b> $$\Delta T_{caliente}=37.00-30.50=6.50\;^\circ\mathrm{C}\qquad \Delta T_{fr\acute{\imath}a}=30.50-25.00=5.50\;^\circ\mathrm{C}$$</div></div>
+      <div class="step"><div class="res"><b>Paso 3 · Calor perdido por el agua caliente.</b> $$q_{a.caliente}=4.184\;\tfrac{\mathrm{J}}{\mathrm{g}\,^\circ\mathrm{C}}\times100.0\;\mathrm{g}\times6.50\;^\circ\mathrm{C}=2.72\times10^{3}\;\mathrm{J}$$</div></div>
+      <div class="step"><div class="res"><b>Paso 4 · Calor ganado por el agua fría.</b> $$q_{a.fr\acute{\imath}a}=4.184\;\tfrac{\mathrm{J}}{\mathrm{g}\,^\circ\mathrm{C}}\times100.0\;\mathrm{g}\times5.50\;^\circ\mathrm{C}=2.30\times10^{3}\;\mathrm{J}$$</div></div>
+      <div class="step"><div class="res"><b>Paso 5 · Flujo de calor → calor ganado por el calorímetro.</b> $$q_{cal}=q_{a.caliente}-q_{a.fr\acute{\imath}a}=2.72\times10^{3}-2.30\times10^{3}=0.42\times10^{3}\;\mathrm{J}$$</div></div>
+      <div class="step"><div class="res big"><b>Paso 6 · Capacidad calorífica del calorímetro</b> (ΔT del calorímetro = ΔT del agua fría, partieron de la misma Ti): $$C_{cal}=\dfrac{q_{cal}}{\Delta T}=\dfrac{418.4\;\mathrm{J}}{5.50\;^\circ\mathrm{C}}\approx 76\;\mathrm{J/^\circ C}$$</div></div>
+    </div>
+    <div style="text-align:center;margin-top:10px">
+      <button class="btn ylw" id="btnStep" onclick="nextStep()">▶ Mostrar siguiente paso</button>
+      <button class="btn" onclick="resetSteps()">↺ Reiniciar ejemplo</button>
+    </div>
+  </div>
+  <div class="card mag"><p>🔑 Este valor de $C_{cal}$ se usará después en el experimento del metal (Simulador 2).</p></div>
+</section>
+
+<!-- ========== SLIDE 10 · SIMULADOR 2 ========== -->
+<section class="slide" id="s10">
+  <h2>🧪 Simulador 2 · Calor específico de un metal</h2>
+  <p class="sub">Un metal caliente se transfiere al calorímetro con agua fría. El metal pierde calor; el agua y el calorímetro lo ganan. ¿Podrás identificar el metal desconocido?</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>🎛 Controles del experimento</h3>
+      <div class="srow"><label>🥇 Metal misterioso (el docente lo oculta):</label>
+        <select id="metalSel" onchange="sim2()">
+          <option value="0.128">Metal A</option>
+          <option value="0.227">Metal B</option>
+          <option value="0.385">Metal C</option>
+          <option value="0.388">Metal D</option>
+          <option value="0.449">Metal E</option>
+          <option value="0.897">Metal F</option>
+        </select></div>
+      <div class="srow"><label>Masa del metal:</label>
+        <input type="range" id="mMetal" min="10" max="60" value="25" oninput="sim2()"><span class="chip y" id="mMetalV">25 g</span></div>
+      <div class="srow"><label>Ti del metal (baño hirviendo):</label>
+        <input type="range" id="tMetal" min="70" max="100" value="90" oninput="sim2()"><span class="chip m" id="tMetalV">90.0 °C</span></div>
+      <div class="srow"><label>Volumen de agua en el calorímetro:</label>
+        <input type="range" id="vAgua2" min="10" max="60" value="20" oninput="sim2()"><span class="chip c" id="vAgua2V">20 mL</span></div>
+      <div class="srow"><label>Ti del agua del calorímetro:</label>
+        <input type="range" id="tAgua2" min="15" max="30" value="25" step="0.5" oninput="sim2()"><span class="chip c" id="tAgua2V">25.0 °C</span></div>
+      <div class="srow"><label>C del calorímetro (del Simulador 1):</label>
+        <input type="range" id="cCal2" min="0" max="150" value="76" oninput="sim2()"><span class="chip y" id="cCal2V">76 J/°C</span></div>
+      <div class="res big">🌡 Tf medida del sistema: <b id="sim2Tf">—</b></div>
+      <div style="text-align:center"><button class="btn mag" onclick="revealMetal()">🕵 ¿Qué metal es? ¡Identifícalo!</button></div>
+    </div>
+    <div class="card grn">
+      <h3>⚖ Balance de energía (en vivo)</h3>
+      <div class="res">q ganado por el calorímetro = C<sub>cal</sub>·ΔT: <b id="sim2qcal">—</b></div>
+      <div class="res">q ganado por el agua = Ce·m·ΔT: <b id="sim2qw">—</b></div>
+      <div class="res">q perdido por el metal = q<sub>cal</sub> + q<sub>agua</sub>: <b id="sim2qm">—</b></div>
+      <div class="res big">🎯 Ce del metal = q/(m·ΔT<sub>metal</sub>) = <b id="sim2Ce">—</b></div>
+      <div class="res" id="metalReveal" style="display:none;border-left-color:var(--magenta);color:var(--magenta);font-weight:700"></div>
+      <p class="note">Ecuación usada: $q_{metal}=q_{calor\acute{\imath}metro}+q_{agua}$ &nbsp;y&nbsp; $C_e = \dfrac{q_{metal}}{m_{metal}\,\Delta T_{metal}}$</p>
+      <p class="note" style="margin-top:8px">Tabla de referencia (J/(g·°C)): Plomo 0.128 · Estaño 0.227 · Cobre 0.385 · Zinc 0.388 · Hierro 0.449 · Aluminio 0.897</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========== SLIDE 11 · EVALUACIÓN ========== -->
+<section class="slide" id="s11">
+  <h2>📋 Evaluación · 10 preguntas (nivel intermedio)</h2>
+  <p class="sub">Selecciona una opción por pregunta. La retroalimentación es inmediata. ¡Suerte! 🍀</p>
+  <div id="scorebar">
+    <span>✅ Aciertos: <span id="nOk" style="color:var(--green)">0</span></span>
+    <span>❌ Errores: <span id="nBad" style="color:var(--red)">0</span></span>
+    <span>📝 Respondidas: <span id="nAns" style="color:var(--yellow)">0</span>/10</span>
+    <button class="btn grn" style="margin-left:auto;padding:5px 14px" onclick="resetQuiz()">↺ Reiniciar</button>
+  </div>
+  <div id="finalmsg"></div>
+  <div id="quizBox"></div>
+</section>
+
+<!-- ========== SLIDE 12 · CIERRE ========== -->
+<section class="slide" id="s12">
+  <h2>🏁 Cierre, conclusiones y referencias</h2>
+  <div class="grid2">
+    <div class="card grn">
+      <h3>Ideas para llevarse a casa 🧠</h3>
+      <ul style="padding-left:20px;line-height:2">
+        <li>El calor es <span class="hlg">energía en tránsito</span> por diferencia de temperatura.</li>
+        <li>$q = C\,\Delta T$ y $q = C_e\,m\,\Delta T$: las ecuaciones centrales.</li>
+        <li>C es <span class="hlg">extensiva</span>; Ce es <span class="hlg">intensiva</span>.</li>
+        <li>Conservación de energía: $q_{sistema}=-q_{alrededores}$.</li>
+        <li>El <span class="hlg">método gráfico</span> corrige las pérdidas de calor del calorímetro.</li>
+        <li>A presión constante el calor medido corresponde a <span class="hlg">ΔH</span>.</li>
+      </ul>
+    </div>
+    <div class="card ylw">
+      <h3>📚 Material de consulta (APA)</h3>
+      <ul style="padding-left:20px;line-height:1.9;font-size:.9rem">
+        <li>Rubio González, J. A. <i>Capítulo 5: Calorimetría</i>. Ingeniería en energía. https://doi.org/10.61728/AE24310062</li>
+        <li>Cengel, Y. &amp; Boles, M. (2015). <i>Termodinámica</i>. México: McGraw-Hill.</li>
+        <li>Goswami, D. (2008). <i>Energy Conversion</i>. UK: CRC Press.</li>
+      </ul>
+      <h3 style="margin-top:14px">📤 Producto académico esperado</h3>
+      <p style="font-size:.88rem">Reporte de laboratorio según la rúbrica: portada (10 %), desarrollo y metodología (20 %), evidencia fotográfica (30 %), cálculos y resultados con unidades (10 %), observaciones y conclusiones (20 %) y bibliografía APA (10 %).</p>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:20px">
+    <button class="btn mag" onclick="go(0)">⏮ Volver al inicio</button>
+    <button class="btn ylw" onclick="go(11)">📋 Ir a la evaluación</button>
+  </div>
+</section>
+
+</div><!-- /stage -->
+
+<!-- ============ BARRA INFERIOR ============ -->
+<div id="navbar">
+  <button class="btn" id="btnPrev" onclick="go(cur-1)">◀ Anterior</button>
+  <button class="btn mag" id="btnNext" onclick="go(cur+1)">Siguiente ▶</button>
+</div>
+<div class="hintnav">Navega también con <kbd>←</kbd> <kbd>→</kbd> o <kbd>espacio</kbd></div>
+
+<script>
+/* ================= NAVEGACIÓN ================= */
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let cur = 0;
+function go(n){
+  if(n < 0 || n >= total) return;
+  slides[cur].classList.remove('active');
+  cur = n;
+  slides[cur].classList.add('active');
+  document.getElementById('counter').textContent = 'Diapositiva ' + (cur+1) + ' / ' + total;
+  document.getElementById('progressbar').style.width = ((cur+1)/total*100) + '%';
+  document.getElementById('btnPrev').disabled = (cur === 0);
+  document.getElementById('btnNext').disabled = (cur === total-1);
+  document.getElementById('stage').scrollTop = 0;
+}
+document.addEventListener('keydown', e=>{
+  if(e.key === 'ArrowRight' || e.key === ' '){ e.preventDefault(); go(cur+1); }
+  if(e.key === 'ArrowLeft'){ e.preventDefault(); go(cur-1); }
+});
+go(0);
+
+/* ================= SLIDE 3 · ENDO / EXO ================= */
+function setProc(t){
+  const box = document.getElementById('procInfo');
+  if(t === 'exo'){
+    box.innerHTML = '<b style="color:var(--orange)">🔥 EXOTÉRMICO</b><br>' +
+      'El calor fluye <b>del sistema hacia los alrededores</b>.<br>' +
+      'El sistema pierde energía → signo de q: <b>q &lt; 0</b> (negativo).<br>' +
+      'Se observa que <b>los alrededores se calientan</b>. Ej.: quemar gasolina.';
+    box.style.borderLeftColor = 'var(--orange)';
+  } else {
+    box.innerHTML = '<b style="color:var(--cyan)">❄️ ENDOTÉRMICO</b><br>' +
+      'El calor fluye <b>de los alrededores hacia el sistema</b>.<br>' +
+      'El sistema gana energía → signo de q: <b>q &gt; 0</b> (positivo).<br>' +
+      'Se observa que <b>los alrededores se enfrían</b>. Ej.: descomponer agua en H₂ y O₂.';
+    box.style.borderLeftColor = 'var(--cyan)';
+  }
+}
+
+/* ================= SLIDE 5 · DEMO Ce ================= */
+function ceDemo(){
+  const Ce = parseFloat(document.getElementById('demoSus').value);
+  const m  = parseFloat(document.getElementById('demoM').value);
+  const q  = parseFloat(document.getElementById('demoQ').value);
+  document.getElementById('demoMv').textContent = m + ' g';
+  document.getElementById('demoQv').textContent = q + ' J';
+  const dT = q / (Ce * m);
+  document.getElementById('demoR').textContent = 'ΔT = q/(Ce·m) = ' + dT.toFixed(2) + ' °C';
+}
+ceDemo();
+
+/* ================= SLIDE 8 · SIMULADOR 1 ================= */
+const CE_W = 4.184;
+function sim1(){
+  const Vh = +document.getElementById('vHot').value;
+  const Th = +document.getElementById('tHot').value;
+  const Vc = +document.getElementById('vCold').value;
+  const Tc = +document.getElementById('tCold').value;
+  const Cc = +document.getElementById('cCal').value;
+  document.getElementById('vHotV').textContent  = Vh + ' mL';
+  document.getElementById('tHotV').textContent  = Th.toFixed(1) + ' °C';
+  document.getElementById('vColdV').textContent = Vc + ' mL';
+  document.getElementById('tColdV').textContent = Tc.toFixed(1) + ' °C';
+  document.getElementById('cCalV').textContent  = Cc + ' J/°C';
+
+  const X = Vh * 1.0 * CE_W;          // m_hot * Ce
+  const Y = Vc * 1.0 * CE_W + Cc;     // m_cold*Ce + C_cal
+  const Tf  = (X*Th + Y*Tc) / (X + Y);
+  const Tf0 = (X*Th + Vc*1.0*CE_W*Tc) / (X + Vc*1.0*CE_W); // sin calorímetro
+
+  const qh   = X * (Th - Tf);
+  const qc   = Vc * 1.0 * CE_W * (Tf - Tc);
+  const qcal = qh - qc;
+  const Ccalc = (Tf > Tc) ? qcal / (Tf - Tc) : 0;
+
+  document.getElementById('sim1Tf').textContent  = Tf.toFixed(2) + ' °C';
+  document.getElementById('sim1Tf0').textContent = Tf0.toFixed(2) + ' °C';
+  document.getElementById('sim1qh').textContent   = qh.toFixed(1) + ' J';
+  document.getElementById('sim1qc').textContent   = qc.toFixed(1) + ' J';
+  document.getElementById('sim1qcal').textContent = qcal.toFixed(1) + ' J';
+  document.getElementById('sim1C').textContent    = Ccalc.toFixed(1) + ' J/°C';
+}
+sim1();
+
+/* ================= SLIDE 9 · PASOS ================= */
+let stepIdx = 0;
+const steps = document.querySelectorAll('.step');
+function nextStep(){
+  if(stepIdx >= steps.length){ return; }
+  steps[stepIdx].classList.add('show');
+  stepIdx++;
+  if(window.renderMathInElement){
+    renderMathInElement(steps[stepIdx-1],{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}],throwOnError:false});
+  }
+  if(stepIdx >= steps.length){
+    document.getElementById('btnStep').disabled = true;
+    document.getElementById('btnStep').textContent = '✔ Ejemplo completado';
+  }
+}
+function resetSteps(){
+  steps.forEach(s => s.classList.remove('show'));
+  stepIdx = 0;
+  const b = document.getElementById('btnStep');
+  b.disabled = false; b.textContent = '▶ Mostrar siguiente paso';
+}
+
+/* ================= SLIDE 10 · SIMULADOR 2 ================= */
+const METAL_NAMES = {'0.128':'Plomo','0.227':'Estaño','0.385':'Cobre','0.388':'Zinc','0.449':'Hierro','0.897':'Aluminio'};
+function sim2(){
+  const sel = document.getElementById('metalSel');
+  const CeM = parseFloat(sel.value);
+  const m   = +document.getElementById('mMetal').value;
+  const Tm  = +document.getElementById('tMetal').value;
+  const Vw  = +document.getElementById('vAgua2').value;
+  const Tw  = +document.getElementById('tAgua2').value;
+  const Cc  = +document.getElementById('cCal2').value;
+  document.getElementById('mMetalV').textContent = m + ' g';
+  document.getElementById('tMetalV').textContent = Tm.toFixed(1) + ' °C';
+  document.getElementById('vAgua2V').textContent = Vw + ' mL';
+  document.getElementById('tAgua2V').textContent = Tw.toFixed(1) + ' °C';
+  document.getElementById('cCal2V').textContent  = Cc + ' J/°C';
+
+  const A = m * CeM;
+  const B = Cc + Vw * 1.0 * CE_W;
+  const Tf = (A*Tm + B*Tw) / (A + B);
+
+  const qcal = Cc * (Tf - Tw);
+  const qw   = Vw * 1.0 * CE_W * (Tf - Tw);
+  const qm   = qcal + qw;
+  const CeR  = qm / (m * (Tm - Tf));
+
+  document.getElementById('sim2Tf').textContent   = Tf.toFixed(2) + ' °C';
+  document.getElementById('sim2qcal').textContent = qcal.toFixed(1) + ' J';
+  document.getElementById('sim2qw').textContent   = qw.toFixed(1) + ' J';
+  document.getElementById('sim2qm').textContent   = qm.toFixed(1) + ' J';
+  document.getElementById('sim2Ce').textContent   = CeR.toFixed(3) + ' J/(g·°C)';
+  document.getElementById('metalReveal').style.display = 'none';
+}
+function revealMetal(){
+  const CeR = parseFloat(document.getElementById('sim2Ce').textContent);
+  let best = null, bestD = Infinity;
+  for(const k in METAL_NAMES){
+    const d = Math.abs(parseFloat(k) - CeR);
+    if(d < bestD){ bestD = d; best = METAL_NAMES[k]; }
+  }
+  const box = document.getElementById('metalReveal');
+  box.innerHTML = '🕵 Comparando Ce = ' + CeR.toFixed(3) + ' J/(g·°C) con la tabla…<br>¡El metal misterioso es <u>' + best.toUpperCase() + '</u>!';
+  box.style.display = 'block';
+}
+sim2();
+
+/* ================= SLIDE 11 · EVALUACIÓN ================= */
+const QUESTIONS = [
+ {q:'Durante una reacción en el calorímetro se observa que el agua de los alrededores se calienta. Entonces el proceso y el signo de q del sistema son:',
+  o:['Endotérmico, q > 0','Exotérmico, q < 0','Adiabático, q = 0','Isotérmico, ΔT = 0'], a:1,
+  e:'Si el calor fluye del sistema a los alrededores, el sistema pierde energía: q es negativo y el proceso es exotérmico.'},
+ {q:'Sobre la capacidad calorífica (C) y el calor específico (Ce), es correcto afirmar que:',
+  o:['Ambas son propiedades intensivas','C es extensiva y Ce es intensivo','C es intensiva y Ce es extensivo','Ambas dependen solo de la temperatura'], a:1,
+  e:'C es proporcional a la cantidad de sustancia (extensiva); Ce se refiere a 1 g de sustancia, por lo que es intensivo.'},
+ {q:'Si q se mide en joules, la masa en gramos y ΔT en °C, las unidades del calor específico son:',
+  o:['J/°C','J/(g·°C)','J·g·°C','W/°C'], a:1,
+  e:'De Ce = q/(m·ΔT) se obtiene J/(g·°C). Para el agua: 4.184 J/(g·°C).'},
+ {q:'Una muestra de 50.0 g de metal a 100.0 °C se introduce en un calorímetro con 100.0 g de agua a 20.0 °C. El equilibrio se alcanza a 23.6 °C. Despreciando la absorción del calorímetro, el Ce del metal es aproximadamente: (Ce agua = 4.184 J/(g·°C))',
+  o:['0.39 J/(g·°C)','0.89 J/(g·°C)','0.13 J/(g·°C)','4.18 J/(g·°C)'], a:0,
+  e:'q agua = 4.184 × 100 × 3.6 = 1506 J. Ce = 1506 / (50 × 76.4) ≈ 0.39 J/(g·°C), cercano al cobre/zinc.'},
+ {q:'En la determinación de C del calorímetro se mezclan 100 mL de agua a 37.0 °C con 100 mL a 25.0 °C y se obtiene Tf = 30.5 °C. ¿Cuánto calor absorbió el calorímetro? (ρ = 1 g/mL)',
+  o:['418 J','2 720 J','2 301 J','5 021 J'], a:0,
+  e:'q caliente = 2 720 J; q fría = 2 301 J; la diferencia, 418 J ≈ 0.42 × 10³ J, la gana el calorímetro.'},
+ {q:'¿Por qué se emplea el método gráfico (extrapolar T vs. tiempo a t = 0) para determinar Tf?',
+  o:['Porque el termómetro demora en estabilizarse','Para corregir el calor que escapa por las paredes del calorímetro','Porque la mezcla no es instantánea','Para eliminar la capacidad calorífica del calorímetro'], a:1,
+  e:'El calorímetro nunca es perfectamente aislado; la extrapolación a t = 0 corrige las pérdidas energéticas hacia los alrededores.'},
+ {q:'El calorímetro sencillo (vaso de café) opera a presión constante (atmosférica); por ello el calor medido permite calcular directamente:',
+  o:['El cambio de energía interna ΔE','El cambio de entalpía ΔH','El trabajo realizado por el sistema','El cambio de entropía ΔS'], a:1,
+  e:'A presión constante, q = ΔH. Por eso ΔH = q sistema / moles de reactivo limitante (kJ/mol).'},
+ {q:'Para medir la energía liberada en una reacción de combustión (que produce flama) se utiliza:',
+  o:['Calorímetro de vaso de café','Bomba calorimétrica','Vaso de poliestireno con tapa','Termómetro diferencial'], a:1,
+  e:'La bomba calorimétrica es un dispositivo más complicado, diseñado para combustiones y sustancias inflamables.'},
+ {q:'En un calorímetro ideal (que no absorbe calor) se mezclan 200 g de agua a 80 °C con 200 g de agua a 20 °C. La temperatura de equilibrio es:',
+  o:['40 °C','50 °C','60 °C','45 °C'], a:1,
+  e:'Masas iguales y misma sustancia → Tf es el promedio: (80 + 20)/2 = 50 °C.'},
+ {q:'Una reacción a presión constante libera 2.50 kJ de calor y consume 0.050 mol de reactivo limitante. El valor de ΔH es:',
+  o:['+50 kJ/mol','−50 kJ/mol','−0.125 kJ/mol','+2.45 kJ/mol'], a:1,
+  e:'ΔH = q/n = −2.50 kJ / 0.050 mol = −50 kJ/mol. El signo negativo indica que el calor se libera (exotérmico).'}
+];
+let nOk = 0, nBad = 0, nAns = 0;
+
+function buildQuiz(){
+  const box = document.getElementById('quizBox');
+  box.innerHTML = '';
+  QUESTIONS.forEach((item, i) => {
+    const card = document.createElement('div');
+    card.className = 'qcard';
+    let opts = '';
+    item.o.forEach((op, j) => {
+      opts += '<button class="opt" data-q="' + i + '" data-o="' + j + '" onclick="answer(' + i + ',' + j + ')">' +
+              String.fromCharCode(97 + j) + ') ' + op + '</button>';
+    });
+    card.innerHTML = '<span class="qnum">PREGUNTA ' + (i+1) + ' / 10</span>' +
+                     '<div class="qtxt">' + item.q + '</div>' + opts +
+                     '<div class="expl" id="expl' + i + '">💡 ' + item.e + '</div>';
+    box.appendChild(card);
+  });
+}
+function answer(i, j){
+  const item = QUESTIONS[i];
+  const btns = document.querySelectorAll('.opt[data-q="' + i + '"]');
+  if(btns[0].disabled) return; // ya respondida
+  btns.forEach(b => b.disabled = true);
+  btns[item.a].classList.add('correct');
+  if(j === item.a){ nOk++; } else { nBad++; btns[j].classList.add('wrong'); }
+  nAns++;
+  document.getElementById('expl' + i).style.display = 'block';
+  document.getElementById('nOk').textContent = nOk;
+  document.getElementById('nBad').textContent = nBad;
+  document.getElementById('nAns').textContent = nAns;
+  if(nAns === 10) showFinal();
+}
+function showFinal(){
+  const f = document.getElementById('finalmsg');
+  let msg;
+  if(nOk === 10)      msg = '🔥 ¡PERFECTO! 10/10 — Dominas la calorimetría como un experto.';
+  else if(nOk >= 8)   msg = '🌟 ¡Excelente! ' + nOk + '/10 — Muy buen manejo de los conceptos y cálculos.';
+  else if(nOk >= 6)   msg = '👍 Bien: ' + nOk + '/10 — Repasa el balance de energía y el método gráfico.';
+  else                msg = '📖 Necesitas repasar: ' + nOk + '/10 — Revisa las ecuaciones q = Ce·m·ΔT y la ley de conservación de la energía.';
+  f.innerHTML = msg + '<br><span style="font-size:.85rem;color:var(--muted)">Rúbrica sugerida: ≥ 8 aprobado con distinción · ≥ 6 aprobado · &lt; 6 requiere refuerzo</span>';
+  f.style.display = 'block';
+  f.scrollIntoView({behavior:'smooth'});
+}
+function resetQuiz(){
+  nOk = 0; nBad = 0; nAns = 0;
+  document.getElementById('nOk').textContent = '0';
+  document.getElementById('nBad').textContent = '0';
+  document.getElementById('nAns').textContent = '0';
+  document.getElementById('finalmsg').style.display = 'none';
+  buildQuiz();
+}
+buildQuiz();
+</script>
+</body>
+</html>
